@@ -33,10 +33,6 @@ public class CellController : MonoBehaviour
         if (reveal== true || StaticVars.revealAllCells == true)
         {
             InstText(transform, MineAdj.ToString(), Color.black);
-            if (IsMine)
-            {
-                InstText(transform, "<|", Color.red);
-            }
         }
     }
     public void InstText(Transform cubeTransform,string text, Color colour)
@@ -257,6 +253,7 @@ public class CellController : MonoBehaviour
         {
             Debug.Log("Boom! You clicked on a mine.");
             CellRenderer.material.color = Color.red;
+            InstText(transform, "<|", Color.red);
         }
         else
         {

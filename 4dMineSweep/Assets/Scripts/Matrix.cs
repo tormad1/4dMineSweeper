@@ -7,12 +7,6 @@ using Color = UnityEngine.Color;
 
 public class Matrix : MonoBehaviour
 {
-    public int boardWidth;
-    public int boardHeight;
-    public int boardDepth;
-    public int boardQuor;
-    public int mineCount;
-    public bool Is4D;
     private int[,,,] mineMatrix;
     private CellController[,,,] cellMatrix;
 
@@ -22,15 +16,15 @@ public class Matrix : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        mineMatrix = new int[boardWidth, boardHeight, boardDepth, boardQuor];
-        cellMatrix = new CellController[boardWidth, boardHeight, boardDepth, boardQuor];
+        mineMatrix = new int[StaticVars.boardWidth, StaticVars.boardHeight, StaticVars.boardDepth, StaticVars.boardQuor];
+        cellMatrix = new CellController[StaticVars.boardWidth, StaticVars.boardHeight, StaticVars.boardDepth, StaticVars.boardQuor];
 
-        while (minePosCount < mineCount)
+        while (minePosCount < StaticVars.mineCount)
         {
-            int x = Random.Range(0, boardWidth);
-            int y = Random.Range(0, boardHeight);
-            int z = Random.Range(0, boardDepth);
-            int w = Random.Range(0, boardQuor);
+            int x = Random.Range(0, StaticVars.boardWidth);
+            int y = Random.Range(0, StaticVars.boardHeight);
+            int z = Random.Range(0, StaticVars.boardDepth);
+            int w = Random.Range(0, StaticVars.boardQuor);
             if (mineMatrix[x, y, z, w] != 1)
             {
                 minePosCount++;
@@ -38,22 +32,23 @@ public class Matrix : MonoBehaviour
             }
         }
 
-        for (int x = 0; x < boardWidth; x++)
+        for (int x = 0; x < StaticVars.boardWidth; x++)
         {
-            for (int y = 0; y < boardHeight; y++)
+            for (int y = 0; y < StaticVars.boardHeight; y++)
             {
-                for (int z = 0; z < boardDepth; z++)
+                for (int z = 0; z < StaticVars.boardDepth; z++)
                 {
-                    for (int w = 0; w < boardQuor; w++)
+                    for (int w = 0; w < StaticVars.boardQuor; w++)
                     {
-                        Vector3 cellPosition1 = new Vector3(x + (boardWidth + 1) * z, y + (boardHeight + 1) * w, 0);
-                        Vector3 cellPosition2 = new Vector3(x, y + (boardHeight + 1) * w, z);
+                        Vector3 cellPosition1 = new Vector3(x + (StaticVars.boardWidth + 1) * z, y + (StaticVars.boardHeight + 1) * w, 0);
+                        Vector3 cellPosition2 = new Vector3(x, y + (StaticVars.boardHeight + 1) * w, z);
                         GameObject cell = Instantiate(CellPrefab, cellPosition2, Quaternion.identity);
                         Transform cubeTransform = cell.transform.Find("Cube");
                         CellController cellController = cubeTransform.GetComponent<CellController>();
                         cellController.cellPosition1 = cellPosition1;
                         cellController.cellPosition2 = cellPosition2;
                         cellController.IsMine = false;
+                        cellController.cellCoords = new Vector4(x, y, z, w);
                         cellMatrix[x, y, z, w] = cellController;
 
                         if (mineMatrix[x, y, z, w] == 1)
@@ -72,12 +67,12 @@ public class Matrix : MonoBehaviour
                                 int ny = y + dy;
                                 int nz = z + dz;
 
-                                if (Is4D)
+                                if (StaticVars.Is4D)
                                 {
                                     int dw = direction.w;
                                     int nw = w + dw;
                                 
-                                    if (nx >= 0 && nx < boardWidth && ny >= 0 && ny < boardHeight && nz >= 0 && nz < boardDepth && nw >= 0 && nw < boardQuor)
+                                    if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth && nw >= 0 && nw < StaticVars.boardQuor)
                                     {
                                         if (mineMatrix[nx, ny, nz, nw] == 1)
                                         {
@@ -87,7 +82,7 @@ public class Matrix : MonoBehaviour
                                 }
                                 else
                                 {
-                                    if (nx >= 0 && nx < boardWidth && ny >= 0 && ny < boardHeight && nz >= 0 && nz < boardDepth)
+                                    if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth)
                                     {
                                         if (mineMatrix[nx, ny, nz, w] == 1)
                                         {
@@ -101,6 +96,7 @@ public class Matrix : MonoBehaviour
                 }
             }
         }
+        StaticVars.cellMatrix = cellMatrix;
     }
     void Update()
     {

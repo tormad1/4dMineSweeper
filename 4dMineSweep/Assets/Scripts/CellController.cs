@@ -14,9 +14,13 @@ public class CellController : MonoBehaviour
     public int MineAdj;
     public Vector3 cellPosition1;
     public Vector3 cellPosition2;
+    public Vector4 cellCoords;
 
 
     private Renderer CellRenderer;
+
+    private List<Renderer> highlightedCells = new List<Renderer>();
+
 
     void Start()
     {
@@ -70,13 +74,78 @@ public class CellController : MonoBehaviour
         }
     }
 
+    public void ShowAdj()
+    {
+
+        foreach (var cell in highlightedCells)
+        {
+            cell.material.color = Color.white; // Assuming white is the default color
+        }
+        highlightedCells.Clear();
+
+        foreach (var direction in StaticVars.mineOffset)
+        {
+            int dx = direction.x;
+            int dy = direction.y;
+            int dz = direction.z;
+
+            int nx = (int)(cellCoords.x + dx);
+            int ny = (int)(cellCoords.y + dy);
+            int nz = (int)(cellCoords.z + dz);
+
+            if (StaticVars.Is4D)
+            {
+                int dw = direction.w;
+                int nw = (int)(cellCoords.w + dw);
+
+                if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth && nw >= 0 && nw < StaticVars.boardQuor)
+                {
+                    var cell = StaticVars.cellMatrix[nx, ny, nz, nw];
+                    if (cell.CellRenderer != null)
+                    {
+                        Renderer targetCell = cell.CellRenderer;
+                        targetCell.material.color = Color.red;
+                        highlightedCells.Add(targetCell);
+                    }
+                }
+            }
+            else
+            {
+                if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth)
+                {
+                    var cell = StaticVars.cellMatrix[nx, ny, nz, (int)cellCoords.w];
+                    if (cell.CellRenderer != null)
+                    {
+                        Renderer targetCell = cell.CellRenderer;
+                        targetCell.material.color = Color.red;
+                        highlightedCells.Add(targetCell);
+                    }
+                }
+            }
+        }
+    }
+
     void Update()
     {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit) && hit.transform == transform)
+        {
+            ShowAdj();
+        }
+        else
+        {
+            foreach (var cell in highlightedCells)
+            {
+                if (cell != null) 
+                {
+                    cell.material.color = Color.white; 
+                }
+            }
+            highlightedCells.Clear(); 
+        }
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
             if (Physics.Raycast(ray, out hit))
             {
                 if (hit.transform == transform)
@@ -92,9 +161,6 @@ public class CellController : MonoBehaviour
         // Detect right-click (flag or unflag the cell)
         if (Input.GetMouseButtonDown(1))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
             if (Physics.Raycast(ray, out hit))
             {
                 if (hit.transform == transform)

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using TMPro;
@@ -10,7 +10,6 @@ public class CellController : MonoBehaviour
     public bool IsMine;
     public bool IsFlagged;
     public bool reveal;
-    public bool revealAll;
     public int MineAdj;
     public Vector3 cellPosition1;
     public Vector3 cellPosition2;
@@ -26,18 +25,18 @@ public class CellController : MonoBehaviour
     {
         CellRenderer = GetComponent<Renderer>();
         IsFlagged = false;
-        reveal = true;
+        reveal = false;
     }
 
     public void Reveal()
     {
-        if (reveal== true || revealAll == true)
+        if (reveal== true || StaticVars.revealAllCells == true)
         {
+            InstText(transform, MineAdj.ToString(), Color.black);
             if (IsMine)
             {
-                CellRenderer.material.color = Color.red;
+                InstText(transform, "<|", Color.red);
             }
-            InstText(transform, MineAdj.ToString(), Color.black);
         }
     }
     public void InstText(Transform cubeTransform,string text, Color colour)
@@ -74,6 +73,75 @@ public class CellController : MonoBehaviour
         }
     }
 
+    public void CheckAdj()
+    {
+
+        foreach (var direction in StaticVars.mineOffset)
+        {
+            int dx = direction.x;
+            int dy = direction.y;
+            int dz = direction.z;
+
+            int nx = (int)(cellCoords.x + dx);
+            int ny = (int)(cellCoords.y + dy);
+            int nz = (int)(cellCoords.z + dz);
+
+            if (StaticVars.Is4D)
+            {
+                int dw = direction.w;
+                int nw = (int)(cellCoords.w + dw);
+
+                if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth && nw >= 0 && nw < StaticVars.boardQuor)
+                {
+                    var cell = StaticVars.cellMatrix[nx, ny, nz, (int)cellCoords.w];
+                    if (cell.MineAdj == 0 && cell.IsMine==false)
+                    {
+                        if (cell.reveal == false)
+                        {
+                            cell.reveal = true;
+                            cell.Reveal();
+                            cell.CheckAdj();
+                        }
+                    }
+                    if (MineAdj == 0 && IsMine == false)
+                    {
+                        if (cell.reveal == false)
+                        {
+                            cell.reveal = true;
+                            cell.Reveal();
+                            cell.CheckAdj();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (nx >= 0 && nx < StaticVars.boardWidth && ny >= 0 && ny < StaticVars.boardHeight && nz >= 0 && nz < StaticVars.boardDepth)
+                {
+                    var cell = StaticVars.cellMatrix[nx, ny, nz, (int)cellCoords.w];
+                    if (cell.MineAdj == 0 && cell.IsMine == false)
+                    {
+                        if (cell.reveal == false)
+                        {
+                            cell.reveal = true;
+                            cell.Reveal();
+                            cell.CheckAdj();
+                        }
+                    }
+                    if (MineAdj == 0 && IsMine == false)
+                    {
+                        if (cell.reveal == false)
+                        {
+                            cell.reveal = true;
+                            cell.Reveal();
+                            cell.CheckAdj();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void ShowAdj()
     {
 
@@ -104,7 +172,7 @@ public class CellController : MonoBehaviour
                     if (cell.CellRenderer != null)
                     {
                         Renderer targetCell = cell.CellRenderer;
-                        targetCell.material.color = Color.red;
+                        targetCell.material.color = new Color(0.7f, 0.8f, 1f, 1f);
                         highlightedCells.Add(targetCell);
                     }
                 }
@@ -117,7 +185,7 @@ public class CellController : MonoBehaviour
                     if (cell.CellRenderer != null)
                     {
                         Renderer targetCell = cell.CellRenderer;
-                        targetCell.material.color = Color.red;
+                        targetCell.material.color = new Color(0.3f, 0.4f, 0.8f, 1f);
                         highlightedCells.Add(targetCell);
                     }
                 }
@@ -184,6 +252,7 @@ public class CellController : MonoBehaviour
 
     void RevealCell()
     {
+        reveal = true;
         if (IsMine)
         {
             Debug.Log("Boom! You clicked on a mine.");
@@ -191,7 +260,8 @@ public class CellController : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            Reveal();
+            CheckAdj();
         }
     }
 

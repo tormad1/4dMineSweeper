@@ -10,6 +10,7 @@ public static class StaticVars
     public static int boardDepth = 4;
     public static int boardQuor = 4;
     public static int mineCount = 4;
+    public static bool revealAllCells = false;
 
     public static CellController[,,,] cellMatrix;
 
